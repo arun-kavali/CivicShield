@@ -1,0 +1,21 @@
+import { Router } from 'express';
+import { authRouter } from './auth.routes.js';
+import { alertRouter } from './alert.routes.js';
+import { analysisRouter } from './analysis.routes.js';
+import { investigationRouter } from './investigation.routes.js';
+import { integrationRouter } from './integration.routes.js';
+import { dashboardRouter } from './dashboard.routes.js';
+import { demoAlertRouter } from './demoAlert.routes.js';
+import { healthRouter } from './health.routes.js';
+import { organizationRouter } from './organization.routes.js';
+
+export const apiRouter = Router();
+apiRouter.use('/health', healthRouter);
+apiRouter.use('/api/auth', authRouter);
+apiRouter.use('/api/alerts', alertRouter);
+apiRouter.use('/api/analysis', analysisRouter);
+apiRouter.use('/api/investigations', investigationRouter);
+apiRouter.use('/api/integrations', integrationRouter);
+apiRouter.use('/api/dashboard', dashboardRouter);
+apiRouter.use('/api/demo-alerts', demoAlertRouter);
+apiRouter.use('/api/organizations', organizationRouter);

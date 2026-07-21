@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const schema=new mongoose.Schema({organizationId:{type:mongoose.Schema.Types.ObjectId,ref:'Organization',required:true,index:true},integrationId:{type:mongoose.Schema.Types.ObjectId,ref:'SecurityIntegration',required:true,index:true},startedAt:Date,completedAt:Date,alertsScanned:{type:Number,default:0},alertsImported:{type:Number,default:0},duplicatesSkipped:{type:Number,default:0},failures:{type:Number,default:0},duration:Number,status:{type:String,enum:['running','completed','failed'],required:true},error:String},{timestamps:true});
+export const IntegrationSyncHistory=mongoose.model('IntegrationSyncHistory',schema);

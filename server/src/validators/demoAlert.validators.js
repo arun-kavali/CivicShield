@@ -1,0 +1,2 @@
+import { z } from 'zod';
+export const generateDemoAlertsSchema = z.object({ numberOfAlerts: z.coerce.number().int().min(1).max(100).default(5), severity: z.enum(['Low', 'Medium', 'High', 'Critical']).optional(), alertTypes: z.array(z.enum(['Malware Detection', 'Phishing Email', 'Brute Force Login', 'Suspicious Login', 'Privilege Escalation', 'PowerShell Execution', 'Command & Control', 'Lateral Movement', 'Data Exfiltration', 'Ransomware Activity'])).min(1).optional() });

@@ -1,0 +1,4 @@
+import { Router } from 'express';
+import * as c from '../controllers/integration.controller.js';
+import { authenticate } from '../middlewares/authenticate.js';
+export const integrationRouter=Router();integrationRouter.use(authenticate);integrationRouter.post('/test',c.test);integrationRouter.post('/',c.create);integrationRouter.get('/',c.list);integrationRouter.get('/:id/history',c.history);integrationRouter.post('/:id/sync',c.sync);integrationRouter.post('/:id/enable',c.setEnabled(true));integrationRouter.post('/:id/disable',c.setEnabled(false));integrationRouter.get('/:id',c.get);integrationRouter.put('/:id',c.update);integrationRouter.delete('/:id',c.remove);

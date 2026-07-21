@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const schema = new mongoose.Schema({ organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', required: true, index: true }, incidentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Incident', required: true, unique: true }, executiveSummary: String, technicalSummary: String, businessImpact: String, aiReasoning: String, evidenceUsed: [String], mitreMapping: [mongoose.Schema.Types.Mixed], containmentRecommendations: [String], recommendedActions: [String], generatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, generatedAt: Date }, { timestamps: true });
+export const Investigation = mongoose.model('Investigation', schema);
