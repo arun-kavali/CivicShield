@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ConnectorConfig } from "@/pages/Connectors";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/api/client";
 import { toast } from "sonner";
 import { Loader2, UploadCloud, File, X, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -102,22 +102,20 @@ export function CSVUploadForm({ connector, onSuccess, onClose }: Props) {
       }
 
       if (alertsToInsert.length > 0) {
-        const { error: insertError } = await supabase.from('alerts').insert(alertsToInsert);
-        if (insertError) throw insertError;
+        await Promise.all(alertsToInsert.map((alert) => api.post('/api/alerts/ingest', alert)));
       }
 
       // 2. Save Connector Config
       const config = { fileName: file.name, headers, rowsImported: alertsToInsert.length };
-      const { error } = await supabase.from('data_connectors').insert({
+      await api.post('/api/integrations', {
         organization_id: organization.id,
-        name: `CSV Upload (${file.name})`,
-        type: connector.type,
-        status: 'active',
-        config: config as any,
-        records_imported: alertsToInsert.length
+        integrationName: `CSV Upload (${file.name})`,
+        integrationType: 'rest',
+        connectionMode: 'pull',
+        connectionStatus: 'connected',
+        syncEnabled: true,
+        metadata: config,
       });
-
-      if (error) throw error;
 
       toast.success(`Successfully imported ${alertsToInsert.length} alerts!`);
       onSuccess();

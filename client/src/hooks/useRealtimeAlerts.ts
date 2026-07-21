@@ -1,18 +1,11 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-/**
- * Subscribe to real-time alert changes for the current user's organization.
- * Invalidates alert + dashboard + incident queries so the Security Analyst
- * dashboard reflects new alerts (and any incidents the AI pipeline creates)
- * without a page refresh.
- */
 export function useRealtimeAlerts() {
   const queryClient = useQueryClient();
   const { organization } = useAuth();
-  const orgId = organization?.id;
+  const orgId = organization?._id ?? organization?.id;
 
   useEffect(() => {
     if (!orgId) return;
@@ -26,26 +19,8 @@ export function useRealtimeAlerts() {
       queryClient.invalidateQueries({ queryKey: ["incidents"] });
     };
 
-    const channel = supabase
-      .channel(`alerts-realtime-${orgId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "alerts",
-          filter: `organization_id=eq.${orgId}`,
-        },
-        invalidate,
-      )
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          invalidate();
-        }
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    invalidate();
+    const interval = window.setInterval(invalidate, 15000);
+    return () => window.clearInterval(interval);
   }, [queryClient, orgId]);
 }

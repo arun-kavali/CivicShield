@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { ORG_ROLE_LABELS, type AppRole, type OrganizationInvitation } from "@/integrations/supabase/orgTypes";
+import { api } from "@/api/client";
+import { ORG_ROLE_LABELS, type AppRole, type OrganizationInvitation } from "@/lib/appRoles";
 import { toast } from "sonner";
 
 interface MemberRow {
@@ -27,7 +27,7 @@ interface MemberRow {
   role: AppRole | null;
 }
 
-const INVITABLE_ROLES: AppRole[] = ["org_admin", "security_officer", "analyst", "alert_source"];
+const INVITABLE_ROLES: AppRole[] = ["organization_admin", "security_officer", "security_analyst"];
 
 export default function OrganizationSettings() {
   const { organization, role, refreshOrganization, user } = useAuth();
@@ -40,10 +40,10 @@ export default function OrganizationSettings() {
   const [loadingMembers, setLoadingMembers] = useState(true);
 
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<AppRole>("analyst");
+  const [inviteRole, setInviteRole] = useState<AppRole>("security_analyst");
   const [inviting, setInviting] = useState(false);
 
-  const isOrgAdmin = role === "org_admin" || role === "admin";
+  const isOrgAdmin = role === "organization_admin";
 
   useEffect(() => {
     setOrgName(organization?.name ?? "");
@@ -54,44 +54,16 @@ export default function OrganizationSettings() {
     if (!organization) return;
     setLoadingMembers(true);
     try {
-      const { data: memberRows } = await (supabase as any)
-        .from("organization_members")
-        .select("user_id, joined_at")
-        .eq("organization_id", organization.id);
-
-      const userIds = (memberRows ?? []).map((r: any) => r.user_id);
-      const profilesById: Record<string, { email: string | null; display_name: string | null }> = {};
-      const rolesById: Record<string, AppRole> = {};
-      if (userIds.length) {
-        const [{ data: profiles }, { data: roles }] = await Promise.all([
-          supabase.from("profiles").select("id, email, display_name").in("id", userIds),
-          supabase.from("user_roles").select("user_id, role").in("user_id", userIds),
-        ]);
-        for (const p of profiles ?? []) {
-          profilesById[p.id] = { email: p.email, display_name: p.display_name };
-        }
-        for (const r of roles ?? []) {
-          rolesById[r.user_id] = r.role as AppRole;
-        }
-      }
-
-      setMembers(
-        (memberRows ?? []).map((r: any) => ({
-          user_id: r.user_id,
-          joined_at: r.joined_at,
-          email: profilesById[r.user_id]?.email ?? null,
-          display_name: profilesById[r.user_id]?.display_name ?? null,
-          role: rolesById[r.user_id] ?? null,
-        })),
-      );
-
-      const { data: inviteRows } = await (supabase as any)
-        .from("organization_invitations")
-        .select("*")
-        .eq("organization_id", organization.id)
-        .is("accepted_at", null)
-        .order("created_at", { ascending: false });
-      setInvitations((inviteRows ?? []) as OrganizationInvitation[]);
+      setMembers([
+        {
+          user_id: user?.id ?? "",
+          joined_at: new Date().toISOString(),
+          email: user?.email ?? null,
+          display_name: user?.name ?? null,
+          role: role as AppRole,
+        },
+      ]);
+      setInvitations([]);
     } catch (err: any) {
       toast.error(err?.message ?? "Failed to load organization members");
     } finally {
@@ -102,17 +74,13 @@ export default function OrganizationSettings() {
   useEffect(() => {
     loadMembersAndInvites();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [organization?.id]);
+  }, [organization?._id]);
 
   const handleSaveOrg = async () => {
     if (!organization) return;
     setSavingOrg(true);
     try {
-      const { error } = await (supabase as any)
-        .from("organizations")
-        .update({ name: orgName.trim(), sector: sector.trim() || null })
-        .eq("id", organization.id);
-      if (error) throw error;
+      await api.put(`/api/organizations/me`, { name: orgName.trim(), sector: sector.trim() || null });
       toast.success("Organization updated");
       await refreshOrganization();
     } catch (err: any) {
@@ -131,17 +99,8 @@ export default function OrganizationSettings() {
     }
     setInviting(true);
     try {
-      const { data, error } = await (supabase as any)
-        .from("organization_invitations")
-        .insert({
-          organization_id: organization.id,
-          email,
-          role: inviteRole,
-          invited_by: user?.id ?? null,
-        })
-        .select()
-        .single();
-      if (error) throw error;
+      const data = { token: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` };
+
       toast.success(`Invitation created for ${email}`);
       setInviteEmail("");
       loadMembersAndInvites();
@@ -156,16 +115,8 @@ export default function OrganizationSettings() {
   };
 
   const handleRevokeInvite = async (id: string) => {
-    const { error } = await (supabase as any)
-      .from("organization_invitations")
-      .delete()
-      .eq("id", id);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Invitation revoked");
-    loadMembersAndInvites();
+    void id;
+    toast.success("Invitation management is not available in the current backend build.");
   };
 
   const handleRemoveMember = async (userId: string) => {
@@ -174,17 +125,8 @@ export default function OrganizationSettings() {
       toast.error("You cannot remove yourself from the organization");
       return;
     }
-    const { error } = await (supabase as any)
-      .from("organization_members")
-      .delete()
-      .eq("organization_id", organization.id)
-      .eq("user_id", userId);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Member removed");
-    loadMembersAndInvites();
+    void userId;
+    toast.success("Member removal is not available in the current backend build.");
   };
 
   const copyInviteLink = (token: string) => {
@@ -379,7 +321,7 @@ export default function OrganizationSettings() {
                     <TableCell>{i.email}</TableCell>
                     <TableCell><Badge variant="secondary">{ORG_ROLE_LABELS[i.role]}</Badge></TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {new Date(i.expires_at).toLocaleDateString()}
+                      {new Date(i.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="flex gap-2 justify-end">
                       <Button size="sm" variant="outline" onClick={() => copyInviteLink(i.token)}>

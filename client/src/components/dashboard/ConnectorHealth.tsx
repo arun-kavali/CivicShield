@@ -1,27 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plug, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/api/client";
 
 export function ConnectorHealth() {
   const { data: connectors, isLoading } = useQuery({
     queryKey: ["data_connectors"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("data_connectors")
-        .select("*");
-      
-      if (error) {
+      try {
+        const response = await api.get("/api/dashboard");
+        return response?.data?.data?.connectorHealth ?? [];
+      } catch (error) {
         console.error("Error fetching connectors:", error);
         return [];
       }
-      return data || [];
     },
   });
 
-  const activeCount = connectors?.filter(c => c.status === 'active' && !c.error_message).length || 0;
-  const errorCount = connectors?.filter(c => c.status === 'active' && c.error_message).length || 0;
-  const inactiveCount = connectors?.filter(c => c.status !== 'active').length || 0;
+  const activeCount = connectors?.filter((c: any) => c.status === "active" && !c.error_message).length || 0;
+  const errorCount = connectors?.filter((c: any) => c.status === "active" && c.error_message).length || 0;
+  const inactiveCount = connectors?.filter((c: any) => c.status !== "active").length || 0;
   const totalCount = connectors?.length || 0;
 
   return (

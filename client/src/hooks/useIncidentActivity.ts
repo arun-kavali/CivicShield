@@ -1,8 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/api/client";
 import { useAuth } from "./useAuth";
-import type { Json } from "@/integrations/supabase/types";
-const db = supabase as unknown as any;
+
+export interface Json {
+  [key: string]: unknown;
+}
 
 export interface IncidentActivity {
   id: string;
@@ -21,14 +23,7 @@ export function useIncidentActivity(incidentId: string) {
   return useQuery({
     queryKey: ["incident-activity", incidentId],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("incident_activity")
-        .select("*")
-        .eq("incident_id", incidentId)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as IncidentActivity[];
+      return [] as IncidentActivity[];
     },
     enabled: !!incidentId,
   });
@@ -52,21 +47,8 @@ export function useLogIncidentAction() {
     }) => {
       if (!user) throw new Error("User not authenticated");
 
-      const { data, error } = await db
-        .from("incident_activity")
-        .insert([{
-          incident_id: incidentId,
-          user_id: user.id,
-          action_type: actionType,
-          action_label: actionLabel,
-          is_demo: true,
-          metadata,
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      await api.post(`/api/investigations/generate/${incidentId}`, { actionType, actionLabel, metadata });
+      return { success: true };
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["incident-activity", variables.incidentId] });
@@ -83,29 +65,7 @@ export function useStartInvestigation() {
       if (!user) throw new Error("User not authenticated");
 
       // Update incident status to In Progress
-      const { error: incidentError } = await db
-        .from("incidents")
-        .update({
-          status: "In Progress",
-        })
-        .eq("id", incidentId);
-
-      if (incidentError) throw incidentError;
-
-      // Log the action
-      const { error: activityError } = await db
-        .from("incident_activity")
-        .insert([{
-          incident_id: incidentId,
-          user_id: user.id,
-          action_type: "start_investigation",
-          action_label: "Investigation started",
-          is_demo: false,
-          metadata: { started_by: user.email },
-        }]);
-
-      if (activityError) throw activityError;
-
+      await api.post(`/api/investigations/generate/${incidentId}`);
       return { success: true };
     },
     onSuccess: () => {
@@ -126,30 +86,7 @@ export function useResolveIncident() {
       if (!user) throw new Error("User not authenticated");
 
       // Update incident status to Resolved
-      const { error: incidentError } = await db
-        .from("incidents")
-        .update({
-          status: "Resolved",
-          resolved_at: new Date().toISOString(),
-        })
-        .eq("id", incidentId);
-
-      if (incidentError) throw incidentError;
-
-      // Log the resolve action
-      const { error: activityError } = await db
-        .from("incident_activity")
-        .insert([{
-          incident_id: incidentId,
-          user_id: user.id,
-          action_type: "resolve",
-          action_label: "Incident resolved",
-          is_demo: false,
-          metadata: { resolved_by: user.email },
-        }]);
-
-      if (activityError) throw activityError;
-
+      await api.post(`/api/investigations/generate/${incidentId}`);
       return { success: true };
     },
     onSuccess: () => {

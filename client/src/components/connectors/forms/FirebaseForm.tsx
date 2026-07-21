@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ConnectorConfig } from "@/pages/Connectors";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/api/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -60,15 +60,15 @@ export function FirebaseForm({ connector, onSuccess, onClose }: Props) {
     try {
       const config = { projectId, collectionName, serviceAccount: JSON.parse(serviceAccount) };
 
-      const { error } = await supabase.from('data_connectors').insert({
-        organization_id: organization.id,
-        name: `Firestore Integration (${projectId})`,
-        type: connector.type,
-        status: 'active',
-        config: config as any
+      await api.post('/api/integrations', {
+        organizationId: organization._id ?? organization.id,
+        integrationName: `Firestore Integration (${projectId})`,
+        integrationType: 'rest',
+        connectionMode: 'pull',
+        connectionStatus: 'connected',
+        syncEnabled: true,
+        metadata: config,
       });
-
-      if (error) throw error;
       
       toast.success("Connector configured securely");
       onSuccess();

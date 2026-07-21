@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 type AlertSeverity = "Low" | "Medium" | "High" | "Critical";
 
@@ -125,19 +124,8 @@ export default function AlertSourceDashboard() {
         });
       }
 
-      const { data: inserted, error } = await supabase
-        .from("alerts")
-        .insert(alertsToInsert)
-        .select("id");
-
-      if (error) throw error;
-
-      // Trigger AI analysis for each new alert (fire-and-forget).
-      (inserted ?? []).forEach((row) => {
-        supabase.functions
-          .invoke("analyze-alert", { body: { alert_id: row.id } })
-          .catch((e) => console.warn("analyze-alert invoke failed:", e));
-      });
+      const insertPromises = alertsToInsert.map((alert) => api.post("/api/alerts", alert));
+      await Promise.all(insertPromises);
 
       toast({
         title: "Sample Alerts Generated",
@@ -190,30 +178,21 @@ export default function AlertSourceDashboard() {
         }
       }
 
-      const { data, error } = await supabase
-        .from("alerts")
-        .insert({
-          organization_id: organization.id,
-          source_system: formData.source_system.trim(),
-          alert_type: formData.alert_type.trim(),
-          severity: formData.severity,
-          raw_log: parsedRawLog,
-          status: "New",
-          timestamp: new Date().toISOString(),
-        })
-        .select("id, timestamp")
-        .single();
+      const response = await api.post("/api/alerts", {
+        organization_id: organization.id,
+        source_system: formData.source_system.trim(),
+        alert_type: formData.alert_type.trim(),
+        severity: formData.severity,
+        raw_log: parsedRawLog,
+        status: "New",
+        timestamp: new Date().toISOString(),
+      });
 
-      if (error) throw error;
-
-      // Trigger AI analysis (fire-and-forget).
-      supabase.functions
-        .invoke("analyze-alert", { body: { alert_id: data.id } })
-        .catch((e) => console.warn("analyze-alert invoke failed:", e));
+      const data = response.data.data;
 
       setLastSubmission({
-        id: data.id,
-        timestamp: new Date(data.timestamp).toLocaleString(),
+        id: data.alert?.id || response.data.data.alert.id,
+        timestamp: new Date(data.alert?.timestamp || response.data.data.alert.timestamp).toLocaleString(),
       });
 
       toast({

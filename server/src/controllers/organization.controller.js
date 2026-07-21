@@ -8,3 +8,15 @@ export const getCurrentOrganization = asyncHandler(async (req, res) => {
   if (!organization || organization.status !== 'active') throw new AppError('Organization is unavailable.', 404);
   return sendSuccess(res, { data: { organization } });
 });
+
+export const updateCurrentOrganization = asyncHandler(async (req, res) => {
+  const organization = await Organization.findById(req.organizationId);
+  if (!organization || organization.status !== 'active') throw new AppError('Organization is unavailable.', 404);
+
+  const { name, sector } = req.body || {};
+  if (typeof name === 'string' && name.trim()) organization.name = name.trim();
+  if (typeof sector === 'string' || sector === null) organization.sector = sector ?? '';
+  await organization.save();
+
+  return sendSuccess(res, { message: 'Organization updated successfully.', data: { organization } });
+});

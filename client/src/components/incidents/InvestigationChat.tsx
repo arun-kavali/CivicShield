@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Bot, Send, User, Loader2, MessageSquare } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/api/client";
 import { toast } from "sonner";
 
 interface Message {
@@ -43,42 +43,15 @@ export function InvestigationChat({ incidentId }: InvestigationChatProps) {
     setIsLoading(true);
 
     try {
-      // Get the session to pass the auth token
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error("No active session");
-      }
-
       // We only send the conversation history (excluding the first greeting if we want, but it's fine to send)
-      const apiMessages = newMessages.map(m => ({ role: m.role, content: m.content }));
+      const apiMessages = newMessages.map((m) => ({ role: m.role, content: m.content }));
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/investigate-chat`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({
-            incidentId,
-            messages: apiMessages
-          })
-        }
-      );
+      const response = await api.post("/api/investigations/chat", {
+        incidentId,
+        messages: apiMessages,
+      });
 
-      if (!response.ok) {
-        throw new Error("Failed to get AI response");
-      }
-
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: response.data.data.reply }]);
     } catch (error) {
       console.error("Chat error:", error);
       toast.error("Failed to send message to AI assistant");

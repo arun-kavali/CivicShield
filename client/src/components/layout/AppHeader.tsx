@@ -1,6 +1,6 @@
 import { Shield, ChevronDown, LogOut, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { ORG_ROLE_LABELS } from "@/integrations/supabase/orgTypes";
+import { ORG_ROLE_LABELS } from "@/lib/appRoles";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,

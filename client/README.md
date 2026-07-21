@@ -35,7 +35,7 @@ CivicShield AI automatically performs intelligent cyber defense using AI, reduci
 
 ## 🏗️ Architecture
 - **Frontend**: React, TypeScript, Vite, Tailwind CSS, shadcn/ui
-- **Backend**: Supabase (PostgreSQL, Auth, RLS, Edge Functions, Realtime, Cron Jobs)
+- **Backend**: Express + MongoDB with JWT auth and Socket.IO
 - **AI Layer**: OpenAI API for Incident Intelligence & Alert Analysis
 
 ## ✨ Key Features

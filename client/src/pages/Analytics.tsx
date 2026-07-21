@@ -30,7 +30,7 @@ export default function Analytics() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
-        <p className="text-muted-foreground">Security metrics and trends powered by live Supabase data</p>
+        <p className="text-muted-foreground">Security metrics and trends powered by your backend analytics pipeline</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

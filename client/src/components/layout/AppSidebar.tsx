@@ -32,7 +32,7 @@ const mainNavItems = [
 
 export function AppSidebar() {
   const { organization, role } = useAuth();
-  const canManageOrg = role === "org_admin" || role === "admin";
+  const canManageOrg = role === "organization_admin";
   return (
     <Sidebar className="border-r border-sidebar-border">
       <SidebarContent className="pt-4">

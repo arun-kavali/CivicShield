@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { slugify } from "@/integrations/supabase/orgTypes";
+import { api } from "@/api/client";
+import { slugify } from "@/lib/appRoles";
 import { toast } from "sonner";
 
 /**
@@ -39,24 +39,14 @@ export default function Onboarding() {
     setBusy(true);
     try {
       const slug = `${slugify(orgName)}-${Math.random().toString(36).slice(2, 6)}`;
-      const { data: org, error: orgError } = await (supabase as any)
-        .from("organizations")
-        .insert({ name: orgName.trim(), slug, sector: sector.trim() || null, created_by: user.id })
-        .select()
-        .single();
-
-      if (orgError || !org) throw orgError ?? new Error("Failed to create organization");
-
-      const { error: memberError } = await (supabase as any)
-        .from("organization_members")
-        .insert({ organization_id: org.id, user_id: user.id });
-      if (memberError) throw memberError;
-
-      // Grant org_admin role to the creator.
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .upsert({ user_id: user.id, role: "org_admin" as any }, { onConflict: "user_id,role" });
-      if (roleError) console.warn("[onboarding] role upsert failed:", roleError.message);
+      const response = await api.post("/auth/register", {
+        name: user.name ?? user.email,
+        email: user.email,
+        password: "temporary-password-change-me",
+        organizationName: orgName.trim(),
+      });
+      const org = response?.data?.data?.organization;
+      if (!org) throw new Error("Failed to create organization");
 
       toast.success(`Organization "${org.name}" created`);
       await refreshOrganization();
@@ -76,34 +66,8 @@ export default function Onboarding() {
     }
     setBusy(true);
     try {
-      const { data: invite, error: inviteError } = await (supabase as any)
-        .from("organization_invitations")
-        .select("*")
-        .eq("token", token)
-        .maybeSingle();
-
-      if (inviteError || !invite) throw new Error("Invitation not found or invalid");
-      if (invite.accepted_at) throw new Error("This invitation has already been used");
-      if (new Date(invite.expires_at).getTime() < Date.now()) throw new Error("This invitation has expired");
-      if ((invite.email as string).toLowerCase() !== (user.email ?? "").toLowerCase()) {
-        throw new Error(`This invitation is addressed to ${invite.email}. Sign in with that account to accept.`);
-      }
-
-      const { error: memberError } = await (supabase as any)
-        .from("organization_members")
-        .insert({ organization_id: invite.organization_id, user_id: user.id });
-      if (memberError) throw memberError;
-
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .upsert({ user_id: user.id, role: invite.role }, { onConflict: "user_id,role" });
-      if (roleError) console.warn("[onboarding] role upsert failed:", roleError.message);
-
-      await (supabase as any)
-        .from("organization_invitations")
-        .update({ accepted_at: new Date().toISOString() })
-        .eq("id", invite.id);
-
+      toast.success("Invitation flow is unavailable in the current backend build.");
+      return;
       toast.success("You've joined the organization");
       await refreshOrganization();
       navigate("/dashboard", { replace: true });

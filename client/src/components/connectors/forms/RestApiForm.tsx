@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ConnectorConfig } from "@/pages/Connectors";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/api/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -76,16 +76,15 @@ export function RestApiForm({ connector, onSuccess, onClose }: Props) {
         headers: JSON.parse(headers)
       };
 
-      const { error } = await supabase.from('data_connectors').insert({
-        organization_id: organization.id,
-        name: `REST API (${new URL(endpointUrl).hostname})`,
-        type: connector.type,
-        status: 'active',
-        config: config as any
+      await api.post('/api/integrations', {
+        organizationId: organization._id ?? organization.id,
+        integrationName: `REST API (${new URL(endpointUrl).hostname})`,
+        integrationType: 'rest',
+        connectionMode: 'pull',
+        connectionStatus: 'connected',
+        syncEnabled: true,
+        metadata: config,
       });
-
-
-      if (error) throw error;
       
       toast.success("Connector configured securely");
       onSuccess();
@@ -106,7 +105,7 @@ export function RestApiForm({ connector, onSuccess, onClose }: Props) {
             <Input 
               id="webhook-url" 
               readOnly 
-              value={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ingest-webhook`} 
+              value={`${window.location.origin}/api/alerts/ingest`} 
               className="font-mono text-sm bg-muted"
             />
             <Button 
@@ -114,7 +113,7 @@ export function RestApiForm({ connector, onSuccess, onClose }: Props) {
               variant="outline" 
               size="icon"
               onClick={() => {
-                navigator.clipboard.writeText(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ingest-webhook`);
+                navigator.clipboard.writeText(`${window.location.origin}/api/alerts/ingest`);
                 toast.success("Webhook URL copied to clipboard");
               }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>

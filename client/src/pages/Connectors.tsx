@@ -3,10 +3,10 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plug, Plus, Database, Globe, FileText, CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { Plug, Plus, Globe, FileText, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { ConnectorModal } from "@/components/connectors/ConnectorModal";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/api/client";
 
 export interface ConnectorConfig {
   id: string;
@@ -19,14 +19,6 @@ export interface ConnectorConfig {
 }
 
 const AVAILABLE_CONNECTORS: ConnectorConfig[] = [
-  {
-    id: "supabase",
-    name: "Supabase",
-    type: "supabase",
-    description: "Connect to an existing Supabase project using connection string and keys.",
-    icon: <Database className="h-6 w-6 text-[#3ECF8E]" />,
-    isAvailable: true,
-  },
   {
     id: "firebase",
     name: "Firebase Firestore",
@@ -120,20 +112,12 @@ export default function Connectors() {
   const [selectedConnector, setSelectedConnector] = useState<ConnectorConfig | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Fetch active connectors from the DB
+  // Fetch active connectors from the backend API
   const { data: activeConnectors, isLoading, refetch } = useQuery({
     queryKey: ["data_connectors"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("data_connectors")
-        .select("*")
-        .order("created_at", { ascending: false });
-      
-      if (error) {
-        console.error("Error fetching connectors:", error);
-        return [];
-      }
-      return data || [];
+      const response = await api.get("/api/integrations");
+      return response.data.data.integrations || [];
     },
   });
 
@@ -143,15 +127,15 @@ export default function Connectors() {
     setIsModalOpen(true);
   };
 
-  const handleToggleStatus = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === "active" ? "inactive" : "active";
-    await supabase.from("data_connectors").update({ status: newStatus }).eq("id", id);
+  const handleToggleStatus = async (id: string, isActive: boolean) => {
+    const endpoint = isActive ? "disable" : "enable";
+    await api.post(`/api/integrations/${id}/${endpoint}`);
     refetch();
   };
 
   const handleRemove = async (id: string) => {
     if (confirm("Are you sure you want to remove this connector?")) {
-      await supabase.from("data_connectors").delete().eq("id", id);
+      await api.delete(`/api/integrations/${id}`);
       refetch();
     }
   };
@@ -181,8 +165,9 @@ export default function Connectors() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {activeConnectors?.map((conn) => {
-              const baseConnector = AVAILABLE_CONNECTORS.find(c => c.type === conn.type);
-              const isActive = conn.status === "active";
+              const baseConnector = AVAILABLE_CONNECTORS.find(c => c.type === conn.integrationType);
+              const isActive = conn.syncEnabled || conn.connectionStatus === "connected";
+              const statusLabel = conn.connectionStatus || (conn.syncEnabled ? "active" : "inactive");
               
               return (
                 <Card key={conn.id} className="relative overflow-hidden border-primary/20">
@@ -194,12 +179,12 @@ export default function Connectors() {
                           {baseConnector?.icon || <Plug className="h-6 w-6 text-primary" />}
                         </div>
                         <div>
-                          <CardTitle className="text-base">{conn.name}</CardTitle>
-                          <CardDescription className="text-xs uppercase tracking-wider">{conn.type}</CardDescription>
+                          <CardTitle className="text-base">{conn.integrationName}</CardTitle>
+                          <CardDescription className="text-xs uppercase tracking-wider">{conn.integrationType}</CardDescription>
                         </div>
                       </div>
                       <Badge variant={isActive ? "default" : "secondary"} className={isActive ? "bg-primary text-primary-foreground" : ""}>
-                        {conn.status}
+                        {statusLabel}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -223,7 +208,7 @@ export default function Connectors() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => handleToggleStatus(conn.id, conn.status)}
+                      onClick={() => handleToggleStatus(conn.id, isActive)}
                       className="flex-1"
                     >
                       {isActive ? 'Disable' : 'Enable'}

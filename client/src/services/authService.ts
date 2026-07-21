@@ -2,7 +2,7 @@ import { api } from '@/api/client';
 
 export type ClientRole = 'organization_admin' | 'security_officer' | 'security_analyst';
 export interface CurrentUser { id: string; organizationId: string; name: string; email: string; role: ClientRole; active: boolean; lastLogin: string | null; }
-export interface Organization { _id: string; name: string; slug: string; plan: string; status: string; settings: Record<string, unknown>; }
+export interface Organization { _id: string; name: string; slug: string; plan: string; status: string; sector?: string; settings: Record<string, unknown>; }
 
 export const authService = {
   register: async (payload: { name: string; email: string; password: string; organizationName: string }) => (await api.post('/auth/register', payload)).data.data,

@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConnectorConfig } from "@/pages/Connectors";
-import { SupabaseForm } from "./forms/SupabaseForm";
 import { FirebaseForm } from "./forms/FirebaseForm";
 import { RestApiForm } from "./forms/RestApiForm";
 import { CSVUploadForm } from "./forms/CSVUploadForm";
@@ -16,8 +15,6 @@ export function ConnectorModal({ isOpen, onClose, connector, onSuccess }: Connec
   
   const renderForm = () => {
     switch (connector.type) {
-      case "supabase":
-        return <SupabaseForm connector={connector} onSuccess={onSuccess} onClose={onClose} />;
       case "firebase":
         return <FirebaseForm connector={connector} onSuccess={onSuccess} onClose={onClose} />;
       case "rest":
