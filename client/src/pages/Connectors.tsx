@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plug, Plus, Globe, FileText, CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { Plug, Plus, Database, Globe, FileText, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { ConnectorModal } from "@/components/connectors/ConnectorModal";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/client";
