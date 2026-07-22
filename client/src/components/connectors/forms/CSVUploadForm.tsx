@@ -102,12 +102,12 @@ export function CSVUploadForm({ connector, onSuccess, onClose }: Props) {
       }
 
       if (alertsToInsert.length > 0) {
-        await Promise.all(alertsToInsert.map((alert) => api.post('/api/alerts/ingest', alert)));
+        await Promise.all(alertsToInsert.map((alert) => api.post('/alerts/ingest', alert)));
       }
 
       // 2. Save Connector Config
       const config = { fileName: file.name, headers, rowsImported: alertsToInsert.length };
-      await api.post('/api/integrations', {
+      await api.post('/integrations', {
         organization_id: organization.id,
         integrationName: `CSV Upload (${file.name})`,
         integrationType: 'rest',

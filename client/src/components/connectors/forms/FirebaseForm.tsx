@@ -60,7 +60,7 @@ export function FirebaseForm({ connector, onSuccess, onClose }: Props) {
     try {
       const config = { projectId, collectionName, serviceAccount: JSON.parse(serviceAccount) };
 
-      await api.post('/api/integrations', {
+      await api.post('/integrations', {
         organizationId: organization._id ?? organization.id,
         integrationName: `Firestore Integration (${projectId})`,
         integrationType: 'rest',

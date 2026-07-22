@@ -16,7 +16,18 @@ export function createApp() {
 
   app.disable('x-powered-by');
   app.use(helmet());
-  app.use(cors({ origin: env.CLIENT_ORIGIN, credentials: true }));
+  const allowedOrigins = new Set([
+    ...env.CLIENT_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean),
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
+  ]);
+  app.use(cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+      return callback(new Error('CORS origin is not allowed.'));
+    },
+    credentials: true,
+  }));
   app.use(compression());
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));

@@ -45,7 +45,7 @@ export function useIncidentSummary(incidentId: string | undefined, initialSummar
     setError(null);
 
     try {
-      const response = await api.post(`/api/investigations/generate/${incidentIdToGenerate}`);
+      const response = await api.post(`/investigations/generate/${incidentIdToGenerate}`);
       const result: SummaryResult = response.data.data.report;
 
       setSummary(result.summary);

@@ -46,7 +46,7 @@ export function InvestigationChat({ incidentId }: InvestigationChatProps) {
       // We only send the conversation history (excluding the first greeting if we want, but it's fine to send)
       const apiMessages = newMessages.map((m) => ({ role: m.role, content: m.content }));
 
-      const response = await api.post("/api/investigations/chat", {
+      const response = await api.post("/investigations/chat", {
         incidentId,
         messages: apiMessages,
       });

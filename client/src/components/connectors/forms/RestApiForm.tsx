@@ -76,7 +76,7 @@ export function RestApiForm({ connector, onSuccess, onClose }: Props) {
         headers: JSON.parse(headers)
       };
 
-      await api.post('/api/integrations', {
+      await api.post('/integrations', {
         organizationId: organization._id ?? organization.id,
         integrationName: `REST API (${new URL(endpointUrl).hostname})`,
         integrationType: 'rest',

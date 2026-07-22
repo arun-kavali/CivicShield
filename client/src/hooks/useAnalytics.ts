@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 const DEFAULT_REFETCH = 30000;
 
 function getDashboardPayload() {
-  return api.get("/api/dashboard").then((response) => response?.data?.data ?? response?.data ?? {});
+  return api.get("/dashboard").then((response) => response?.data?.data ?? response?.data ?? {});
 }
 
 export function useAnalyticsSummary() {

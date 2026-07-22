@@ -80,7 +80,7 @@ export default function OrganizationSettings() {
     if (!organization) return;
     setSavingOrg(true);
     try {
-      await api.put(`/api/organizations/me`, { name: orgName.trim(), sector: sector.trim() || null });
+      await api.put(`/organizations/me`, { name: orgName.trim(), sector: sector.trim() || null });
       toast.success("Organization updated");
       await refreshOrganization();
     } catch (err: any) {

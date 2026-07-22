@@ -24,7 +24,7 @@ export function useIncidents(limit?: number) {
     queryFn: async () => {
       if (!orgId) return [];
 
-      const response = await api.get("/api/dashboard");
+      const response = await api.get("/dashboard");
       const incidents = response?.data?.data?.recentIncidents ?? [];
       return (incidents as Incident[])
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -44,7 +44,7 @@ export function useActiveIncidents(limit?: number) {
     queryFn: async () => {
       if (!orgId) return [];
 
-      const response = await api.get("/api/dashboard");
+      const response = await api.get("/dashboard");
       const incidents = response?.data?.data?.recentIncidents ?? [];
       return (incidents as Incident[])
         .filter((incident) => incident.status !== "Resolved" && incident.status !== "Closed")
@@ -64,7 +64,7 @@ export function useIncidentsByStatus() {
     queryFn: async () => {
       if (!orgId) return [];
 
-      const response = await api.get("/api/dashboard");
+      const response = await api.get("/dashboard");
       const incidents = response?.data?.data?.recentIncidents ?? [];
       const counts: Record<string, number> = { Open: 0, "In Progress": 0, Resolved: 0, Closed: 0 };
       incidents.forEach((incident: Incident) => {
@@ -82,7 +82,7 @@ export function useIncidentAlerts(incidentId: string) {
   return useQuery({
     queryKey: ["incident-alerts", incidentId],
     queryFn: async () => {
-      const response = await api.get("/api/alerts");
+      const response = await api.get("/alerts");
       const alerts = response?.data?.data?.alerts ?? [];
       return alerts as import("./useAlerts").Alert[];
     },

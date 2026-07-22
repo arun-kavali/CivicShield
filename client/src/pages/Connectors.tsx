@@ -116,7 +116,7 @@ export default function Connectors() {
   const { data: activeConnectors, isLoading, refetch } = useQuery({
     queryKey: ["data_connectors"],
     queryFn: async () => {
-      const response = await api.get("/api/integrations");
+      const response = await api.get("/integrations");
       return response.data.data.integrations || [];
     },
   });
@@ -129,13 +129,13 @@ export default function Connectors() {
 
   const handleToggleStatus = async (id: string, isActive: boolean) => {
     const endpoint = isActive ? "disable" : "enable";
-    await api.post(`/api/integrations/${id}/${endpoint}`);
+    await api.post(`/integrations/${id}/${endpoint}`);
     refetch();
   };
 
   const handleRemove = async (id: string) => {
     if (confirm("Are you sure you want to remove this connector?")) {
-      await api.delete(`/api/integrations/${id}`);
+      await api.delete(`/integrations/${id}`);
       refetch();
     }
   };

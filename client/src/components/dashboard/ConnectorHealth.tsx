@@ -8,7 +8,7 @@ export function ConnectorHealth() {
     queryKey: ["data_connectors"],
     queryFn: async () => {
       try {
-        const response = await api.get("/api/dashboard");
+        const response = await api.get("/dashboard");
         return response?.data?.data?.connectorHealth ?? [];
       } catch (error) {
         console.error("Error fetching connectors:", error);

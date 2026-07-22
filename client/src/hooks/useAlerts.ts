@@ -24,7 +24,7 @@ export function useAlerts(limit?: number) {
     queryFn: async () => {
       if (!orgId) return [];
 
-      const response = await api.get("/api/alerts");
+      const response = await api.get("/alerts");
       const alerts = response?.data?.data?.alerts ?? [];
       return (alerts as Alert[])
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -44,7 +44,7 @@ export function useAlertsBySeverity() {
     queryFn: async () => {
       if (!orgId) return [];
 
-      const response = await api.get("/api/alerts");
+      const response = await api.get("/alerts");
       const alerts = response?.data?.data?.alerts ?? [];
       const counts: Record<string, number> = { Low: 0, Medium: 0, High: 0, Critical: 0 };
       alerts.forEach((alert: Alert) => {
@@ -67,7 +67,7 @@ export function useAlertsBySource() {
     queryFn: async () => {
       if (!orgId) return [];
 
-      const response = await api.get("/api/alerts");
+      const response = await api.get("/alerts");
       const alerts = response?.data?.data?.alerts ?? [];
       const counts: Record<string, number> = {};
       alerts.forEach((alert: Alert) => {
@@ -91,7 +91,7 @@ export function useAlertsOverTime() {
     queryFn: async () => {
       if (!orgId) return [];
 
-      const response = await api.get("/api/alerts");
+      const response = await api.get("/alerts");
       const alerts = response?.data?.data?.alerts ?? [];
       const counts: Record<string, number> = {};
       for (let i = 6; i >= 0; i--) {

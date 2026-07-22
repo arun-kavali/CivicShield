@@ -20,7 +20,7 @@ export function useDashboardStats() {
         return { totalAlerts: 0, criticalAlerts: 0, openIncidents: 0, resolvedToday: 0 };
       }
 
-      const response = await api.get("/api/dashboard");
+      const response = await api.get("/dashboard");
       const metrics = response?.data?.data?.metrics ?? {};
 
       return {

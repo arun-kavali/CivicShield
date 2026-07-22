@@ -47,7 +47,7 @@ export function useLogIncidentAction() {
     }) => {
       if (!user) throw new Error("User not authenticated");
 
-      await api.post(`/api/investigations/generate/${incidentId}`, { actionType, actionLabel, metadata });
+      await api.post(`/investigations/generate/${incidentId}`, { actionType, actionLabel, metadata });
       return { success: true };
     },
     onSuccess: (_, variables) => {
@@ -65,7 +65,7 @@ export function useStartInvestigation() {
       if (!user) throw new Error("User not authenticated");
 
       // Update incident status to In Progress
-      await api.post(`/api/investigations/generate/${incidentId}`);
+      await api.post(`/investigations/generate/${incidentId}`);
       return { success: true };
     },
     onSuccess: () => {
@@ -86,7 +86,7 @@ export function useResolveIncident() {
       if (!user) throw new Error("User not authenticated");
 
       // Update incident status to Resolved
-      await api.post(`/api/investigations/generate/${incidentId}`);
+      await api.post(`/investigations/generate/${incidentId}`);
       return { success: true };
     },
     onSuccess: () => {

@@ -124,7 +124,7 @@ export default function AlertSourceDashboard() {
         });
       }
 
-      const insertPromises = alertsToInsert.map((alert) => api.post("/api/alerts", alert));
+      const insertPromises = alertsToInsert.map((alert) => api.post("/alerts/ingest", alert));
       await Promise.all(insertPromises);
 
       toast({
@@ -178,7 +178,7 @@ export default function AlertSourceDashboard() {
         }
       }
 
-      const response = await api.post("/api/alerts", {
+      const response = await api.post("/alerts/ingest", {
         organization_id: organization.id,
         source_system: formData.source_system.trim(),
         alert_type: formData.alert_type.trim(),
